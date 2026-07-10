@@ -9,7 +9,7 @@
     <style>
         body {
             font-family: 'Outfit', sans-serif;
-            background-color: #f0fdfa; /* Light teal background */
+            background-color: #f0fdfa;
             color: #0f172a;
             overflow-x: hidden;
         }
@@ -27,39 +27,42 @@
             -webkit-text-fill-color: transparent;
         }
 
+        /* USG Screen Constraints */
         .endoscopy-container {
-            width: 150px;
-            height: 150px;
+            width: 100%;
+            max-width: 120px;
+            aspect-ratio: 1 / 1;
             border-radius: 50%;
             background: radial-gradient(circle, #1a2e1a 0%, #000000 90%);
             border: 6px solid #334155;
-            box-shadow: inset 0 0 20px rgba(0,0,0,0.9), 0 5px 10px rgba(0,0,0,0.2);
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.9);
             position: relative;
             overflow: hidden;
             display: flex;
             justify-content: center;
             align-items: center;
+            margin: 0 auto;
+        }
+
+        @media (min-width: 768px) {
+            .endoscopy-container { max-width: 160px; }
         }
 
         .scanline {
             position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 10px;
+            top: 0; left: 0;
+            width: 100%; height: 10px;
             background: rgba(74, 222, 128, 0.2);
             animation: scan 3s linear infinite;
             z-index: 10;
         }
 
-        @keyframes scan {
-            0% { top: -10%; }
-            100% { top: 110%; }
-        }
+        @keyframes scan { 0% { top: -10%; } 100% { top: 110%; } }
 
+        /* Worm Animations */
         .worm {
             position: absolute;
-            width: 40px;
+            width: 30px;
             height: auto;
             fill: none;
             stroke: #fca5a5;
@@ -67,66 +70,42 @@
             stroke-linecap: round;
             transform-origin: center;
             transition: all 1s ease;
-            filter: drop-shadow(0 0 2px rgba(255,255,255,0.5));
         }
+        .worm.active { animation: wiggle 1s infinite alternate ease-in-out; }
+        .worm.hyper { stroke: #ef4444; animation: wiggleFast 0.3s infinite alternate ease-in-out; }
+        .worm.dead { stroke: #94a3b8; animation: none; opacity: 0.4; transform: translateY(20px) rotate(15deg); }
 
-        .worm.active {
-            animation: wiggle 1s infinite alternate ease-in-out;
-        }
+        @keyframes wiggle { 0% { transform: translate(-3px, -3px) rotate(-10deg) scaleY(1); } 100% { transform: translate(3px, 3px) rotate(10deg) scaleY(0.8); } }
+        @keyframes wiggleFast { 0% { transform: translate(-6px, -6px) rotate(-20deg) scaleY(1.1); } 100% { transform: translate(6px, 6px) rotate(20deg) scaleY(0.7); } }
 
-        .worm.hyper {
-            stroke: #ef4444;
-            animation: wiggleFast 0.3s infinite alternate ease-in-out;
-        }
-
-        .worm.dead {
-            stroke: #94a3b8;
-            animation: none;
-            opacity: 0.4;
-            transform: translateY(20px) rotate(15deg);
-        }
-
-        @keyframes wiggle {
-            0% { transform: translate(-3px, -3px) rotate(-10deg) scaleY(1); }
-            100% { transform: translate(3px, 3px) rotate(10deg) scaleY(0.8); }
-        }
-
-        @keyframes wiggleFast {
-            0% { transform: translate(-8px, -8px) rotate(-20deg) scaleY(1.1); }
-            100% { transform: translate(8px, 8px) rotate(20deg) scaleY(0.7); }
-        }
-
-        .patient-svg {
-            transition: all 1s ease;
-        }
-        .status-critical { filter: drop-shadow(0 0 15px rgba(239, 68, 68, 0.6)); }
-        .status-healthy { filter: drop-shadow(0 0 15px rgba(34, 197, 94, 0.6)); }
-        .status-sick { filter: drop-shadow(0 0 10px rgba(234, 179, 8, 0.4)); }
-
-        @keyframes breathe {
-            0% { transform: scale(1); }
-            100% { transform: scale(1.03); }
-        }
-        .animate-breathe {
-            animation: breathe 1.5s infinite alternate ease-in-out;
-        }
-
+        /* Custom Scrollbar */
         .custom-scrollbar::-webkit-scrollbar { width: 4px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #0d9488; border-radius: 2px; }
+
+        /* Patient SVG Animations */
+        .animate-pain { animation: painCrunch 1.5s infinite alternate ease-in-out; transform-origin: bottom center; }
+        @keyframes painCrunch {
+            0% { transform: scaleY(1) translateY(0); }
+            100% { transform: scaleY(0.96) translateY(5px); }
+        }
+
+        .face-transition { transition: fill 0.5s ease; }
+        .rash-transition { transition: opacity 0.5s ease; }
     </style>
 </head>
 <body class="antialiased">
 
+    <!-- Sticky Navigation -->
     <nav class="fixed top-0 w-full z-50 glass-card border-b border-gray-200">
         <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between h-16 items-center">
-                <div class="flex-shrink-0 font-extrabold text-2xl tracking-tighter gradient-text">
+            <div class="flex justify-between h-14 md:h-16 items-center">
+                <div class="flex-shrink-0 font-extrabold text-xl md:text-2xl tracking-tighter gradient-text">
                     DEWORMING
                 </div>
                 <div class="hidden md:flex space-x-8 font-semibold text-sm text-gray-600">
                     <a href="#home" class="hover:text-teal-600 transition">Overview</a>
-                    <a href="#video" class="hover:text-teal-600 transition">Video Guide</a>
+                    <a href="#video" class="hover:text-teal-600 transition">Video</a>
                     <a href="#simulator" class="hover:text-teal-600 transition">Simulator</a>
                     <a href="#case" class="hover:text-teal-600 transition">Case Study</a>
                 </div>
@@ -134,28 +113,28 @@
         </div>
     </nav>
 
-    <div class="pt-24 pb-12 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 space-y-24">
+    <div class="pt-20 pb-12 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 space-y-16 md:space-y-24">
 
-        <!-- Header / Overview Section -->
-        <section id="home" class="text-center space-y-6 pt-10">
-            <span class="px-4 py-1.5 rounded-full bg-teal-100 text-teal-800 font-bold text-sm uppercase tracking-wide">Community Medicine Module</span>
+        <!-- Header -->
+        <section id="home" class="text-center space-y-4 md:space-y-6 pt-6 md:pt-10">
+            <span class="px-4 py-1.5 rounded-full bg-teal-100 text-teal-800 font-bold text-xs md:text-sm uppercase tracking-wide">Community Medicine Module</span>
             <h1 class="text-4xl md:text-6xl font-extrabold text-gray-900 tracking-tight leading-tight">
                 Breaking the Cycle of <br> <span class="gradient-text">Soil-Transmitted Helminths</span>
             </h1>
-            <p class="max-w-2xl mx-auto text-base md:text-lg text-gray-600 font-light px-4">
-                A digital exploration of National Deworming Day, highlighting the epidemiological triad, pharmacological interventions, and clinical management.
+            <p class="max-w-2xl mx-auto text-sm md:text-lg text-gray-600 font-light">
+                A digital exploration of National Deworming Day (NDD), highlighting the epidemiological triad, pharmacological interventions, and clinical management.
             </p>
         </section>
 
-        <!-- Video Guide Section -->
+        <!-- Video Section -->
         <section id="video" class="scroll-mt-24">
             <div class="glass-card rounded-3xl p-6 md:p-12">
-                <div class="text-center mb-8">
-                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-2">Deworming Educational Video</h2>
-                    <p class="text-sm md:text-base text-gray-600">Tap below to watch this informative video directly on YouTube.</p>
+                <div class="text-center mb-6 md:mb-8">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-2">Educational Video</h2>
+                    <p class="text-sm md:text-base text-gray-600">Click below to watch directly on YouTube.</p>
                 </div>
                 
-                <a href="https://youtu.be/KBSTc7DOXr0" target="_blank" class="group relative block w-full max-w-3xl mx-auto overflow-hidden rounded-2xl shadow-lg transition-transform hover:scale-[1.02]" style="padding-top: 56.25%; background-image: url('https://img.youtube.com/vi/KBSTc7DOXr0/maxresdefault.jpg'); background-size: cover; background-position: center;">
+                <a href="https://youtu.be/KBSTc7DOXr0" target="_blank" class="group relative block w-full overflow-hidden rounded-2xl shadow-lg transition-transform hover:scale-[1.02]" style="padding-top: 56.25%; background-image: url('https://img.youtube.com/vi/KBSTc7DOXr0/maxresdefault.jpg'); background-size: cover; background-position: center;">
                     <div class="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center group-hover:bg-opacity-30 transition-all">
                         <div class="w-16 h-16 md:w-20 md:h-20 bg-red-600 rounded-full flex items-center justify-center shadow-2xl transform group-hover:scale-110 transition-transform">
                             <svg class="w-8 h-8 md:w-10 md:h-10 text-white ml-2" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
@@ -173,78 +152,84 @@
                     <p class="text-gray-600 text-xs md:text-sm">Patient: 5-Year-Old Male. Symptomatic for STH. Select intervention.</p>
                 </div>
 
-                <div class="flex flex-col md:flex-row justify-between items-center bg-white p-4 md:p-8 rounded-2xl shadow-sm border border-gray-100 gap-6">
+                <!-- Visuals: Side by Side strictly -->
+                <div class="flex flex-row justify-between items-center bg-white p-4 md:p-8 rounded-2xl shadow-sm border border-gray-100 gap-2 md:gap-6">
                     
-                    <!-- Patient Animation Side -->
-                    <div class="flex flex-col items-center space-y-4 flex-1 w-full">
-                        <div class="relative w-64 h-64 md:w-80 md:h-80 flex justify-center items-center">
-                            <!-- SVG Patient -->
-                            <svg class="patient-svg status-sick w-full h-full" viewBox="0 0 200 200" fill="none" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
-                                <!-- Bed -->
-                                <path d="M5 160 L195 160 M10 160 L10 190 M190 160 L190 190 M5 130 L5 160" stroke="#cbd5e1" />
-                                <rect x="25" y="125" width="50" height="35" rx="8" fill="#f8fafc" stroke="#cbd5e1"/>
+                    <!-- BIG PATIENT -->
+                    <div class="w-3/5 md:w-1/2 flex flex-col items-center">
+                        <!-- Patient SVG Container -->
+                        <div class="relative w-full max-w-[220px]" style="aspect-ratio: 4/5;">
+                            <svg id="front-patient" class="w-full h-full animate-pain" viewBox="0 0 200 250" fill="none">
+                                <!-- Body/Shirt -->
+                                <rect x="40" y="120" width="120" height="130" rx="30" fill="#4ade80" />
                                 
-                                <!-- Breathing Body -->
-                                <g class="animate-breathe" style="transform-origin: 100px 140px;">
-                                    <path d="M 75 140 C 100 100, 150 115, 180 160" fill="#bae6fd" stroke="#7dd3fc" />
+                                <!-- Arms clutching stomach -->
+                                <path d="M 30 140 Q 100 210 170 140" stroke="#fcd34d" stroke-width="18" fill="none" stroke-linecap="round"/>
+                                <path d="M 40 160 Q 100 220 160 160" stroke="#fbbf24" stroke-width="14" fill="none" stroke-linecap="round"/>
+                                
+                                <!-- Head & Face Base -->
+                                <circle id="face-base" cx="100" cy="75" r="45" fill="#fde047" class="face-transition" />
+                                
+                                <!-- Hair -->
+                                <path d="M 50 50 Q 80 10 120 20 Q 160 30 150 60 Q 130 10 100 15 Q 70 20 50 50 Z" fill="#78350f"/>
+                                <path d="M 45 65 Q 40 40 70 30 Z" fill="#78350f"/>
+                                <path d="M 155 65 Q 160 40 130 30 Z" fill="#78350f"/>
+                                
+                                <!-- Ears -->
+                                <circle cx="50" cy="75" r="10" fill="#fde047" class="face-transition" />
+                                <circle cx="150" cy="75" r="10" fill="#fde047" class="face-transition" />
+                                
+                                <!-- Rash (Hidden initially) -->
+                                <g id="rash-group" class="opacity-0 rash-transition" fill="#b91c1c">
+                                    <circle cx="70" cy="65" r="3" /><circle cx="130" cy="60" r="4" />
+                                    <circle cx="65" cy="85" r="3.5" /><circle cx="135" cy="80" r="3" />
+                                    <circle cx="100" cy="100" r="4" /><circle cx="115" cy="55" r="3" />
+                                    <circle cx="85" cy="50" r="2.5" /><circle cx="95" cy="60" r="2" />
+                                    <circle cx="125" cy="95" r="3" />
+                                </g>
+
+                                <!-- SICK EYES (Squint) -->
+                                <g id="eyes-sick">
+                                    <path d="M 70 70 L 80 75 L 70 80" stroke="#451a03" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M 130 70 L 120 75 L 130 80" stroke="#451a03" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
                                 </g>
                                 
-                                <!-- Base Face -->
-                                <circle cx="50" cy="115" r="22" fill="#fef08a" stroke="#eab308" stroke-width="2"/>
-                                
-                                <!-- Rash elements (Hidden by default) -->
-                                <g id="patient-rash" class="opacity-0 transition-opacity duration-500">
-                                    <circle cx="38" cy="108" r="2.5" fill="#ef4444" stroke="none"/>
-                                    <circle cx="46" cy="98" r="2" fill="#ef4444" stroke="none"/>
-                                    <circle cx="58" cy="102" r="2.5" fill="#ef4444" stroke="none"/>
-                                    <circle cx="64" cy="112" r="2" fill="#ef4444" stroke="none"/>
-                                    <circle cx="52" cy="127" r="2.5" fill="#ef4444" stroke="none"/>
-                                    <circle cx="39" cy="120" r="2" fill="#ef4444" stroke="none"/>
-                                    <circle cx="48" cy="108" r="1.5" fill="#ef4444" stroke="none"/>
+                                <!-- HEALTHY EYES (Open) -->
+                                <g id="eyes-healthy" class="hidden">
+                                    <circle cx="75" cy="75" r="5" fill="#451a03" />
+                                    <circle cx="125" cy="75" r="5" fill="#451a03" />
                                 </g>
-                                
-                                <!-- Face: Sick -->
-                                <g id="face-sick">
-                                    <path d="M 38 108 L 45 111 L 38 114" stroke="#b45309" stroke-width="2" stroke-linejoin="round"/>
-                                    <path d="M 62 108 L 55 111 L 62 114" stroke="#b45309" stroke-width="2" stroke-linejoin="round"/>
-                                    <path d="M 45 125 Q 50 120 55 125" stroke="#b45309" stroke-width="2.5"/>
-                                    <path d="M 32 98 Q 34 103 31 105 Q 28 105 28 102 Q 28 98 32 98" fill="#60a5fa" stroke="none"/>
+
+                                <!-- CRITICAL EYES (Wide Shock) -->
+                                <g id="eyes-critical" class="hidden">
+                                    <circle cx="75" cy="75" r="8" fill="#fff" stroke="#451a03" stroke-width="2"/>
+                                    <circle cx="75" cy="75" r="3" fill="#451a03"/>
+                                    <circle cx="125" cy="75" r="8" fill="#fff" stroke="#451a03" stroke-width="2"/>
+                                    <circle cx="125" cy="75" r="3" fill="#451a03"/>
                                 </g>
+
+                                <!-- SICK MOUTH (Groan) -->
+                                <path id="mouth-sick" d="M 85 95 Q 100 90 115 95" stroke="#451a03" stroke-width="3" fill="none" stroke-linecap="round"/>
                                 
-                                <!-- Face: Healthy -->
-                                <g id="face-healthy" class="hidden">
-                                    <circle cx="42" cy="110" r="2.5" fill="#166534" stroke="none"/>
-                                    <circle cx="58" cy="110" r="2.5" fill="#166534" stroke="none"/>
-                                    <path d="M 44 122 Q 50 130 56 122" stroke="#166534" stroke-width="2.5"/>
-                                </g>
+                                <!-- HEALTHY MOUTH (Smile) -->
+                                <path id="mouth-healthy" d="M 85 95 Q 100 110 115 95" stroke="#451a03" stroke-width="3" fill="none" stroke-linecap="round" class="hidden"/>
                                 
-                                <!-- Face: Critical -->
-                                <g id="face-critical" class="hidden">
-                                    <circle cx="42" cy="110" r="4" fill="#fff" stroke="#991b1b" stroke-width="1.5"/>
-                                    <circle cx="42" cy="110" r="1.5" fill="#991b1b" stroke="none"/>
-                                    <circle cx="58" cy="110" r="4" fill="#fff" stroke="#991b1b" stroke-width="1.5"/>
-                                    <circle cx="58" cy="110" r="1.5" fill="#991b1b" stroke="none"/>
-                                    <ellipse cx="50" cy="125" rx="3.5" ry="5.5" fill="#991b1b" stroke="none"/>
-                                </g>
-                                
-                                <!-- IV Line -->
-                                <path d="M 160 40 L 160 130" stroke="#94a3b8" stroke-width="2" stroke-dasharray="4"/>
-                                <rect x="150" y="20" width="20" height="30" rx="4" fill="#f8fafc" stroke="#94a3b8"/>
-                            </svg>
-                            <!-- Connection Line -->
-                            <svg class="absolute top-1/2 -right-8 w-16 h-8 hidden md:block" viewBox="0 0 100 20" fill="none" stroke="#94a3b8" stroke-width="2" stroke-dasharray="4">
-                                <path d="M0 10 Q 50 10, 100 10"/>
+                                <!-- CRITICAL MOUTH (Open) -->
+                                <ellipse id="mouth-critical" cx="100" cy="100" rx="8" ry="12" fill="#451a03" class="hidden"/>
+
+                                <!-- Sweat Drops (Sick) -->
+                                <path id="sweat" d="M 145 45 Q 155 55 145 65 Q 135 55 145 45 Z" fill="#7dd3fc" class="opacity-80"/>
                             </svg>
                         </div>
-                        <div class="px-4 py-1.5 bg-yellow-100 text-yellow-800 text-xs md:text-sm font-bold rounded-full shadow-sm text-center" id="patient-status-badge">
-                            Vitals: Stable | Symptomatic
+                        <div class="mt-2 px-3 py-1 bg-yellow-100 text-yellow-800 text-[10px] md:text-sm font-bold rounded-full text-center shadow-sm w-full truncate" id="patient-status-badge">
+                            Vitals: Symptomatic
                         </div>
                     </div>
 
-                    <!-- Endoscopy Side -->
-                    <div class="flex flex-col items-center flex-shrink-0">
-                        <div class="bg-gray-800 rounded-t-xl px-2 py-1 w-full max-w-[150px] text-center border-b border-gray-700">
-                            <span class="text-green-400 font-mono text-[10px] font-bold tracking-widest uppercase animate-pulse">● Gastric USG</span>
+                    <!-- TINY USG -->
+                    <div class="w-2/5 md:w-1/2 flex flex-col items-center">
+                        <div class="bg-gray-800 rounded-t-lg px-2 py-1 w-full max-w-[120px] md:max-w-[160px] text-center border-b border-gray-700">
+                            <span class="text-green-400 font-mono text-[8px] md:text-xs font-bold uppercase animate-pulse">● Live USG</span>
                         </div>
                         <div class="endoscopy-container">
                             <div class="scanline"></div>
@@ -255,43 +240,40 @@
                     </div>
                 </div>
 
-                <!-- Controls & Console -->
-                <div class="mt-6 grid grid-cols-1 md:grid-cols-12 gap-4">
-                    <div class="md:col-span-8 space-y-3">
-                        <div class="grid grid-cols-2 gap-3">
-                            <div>
-                                <label class="block text-xs font-bold text-gray-700 mb-1">Select Drug:</label>
-                                <select id="sim-drug" class="w-full bg-white border border-gray-300 text-gray-900 text-sm rounded-lg p-2 focus:ring-teal-500 cursor-pointer">
-                                    <option value="albendazole">Albendazole (Anthelmintic)</option>
-                                    <option value="steroid">Corticosteroids (Suppressant)</option>
-                                    <option value="iron">Iron Folic Acid (Supplement)</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label class="block text-xs font-bold text-gray-700 mb-1">Select Dose:</label>
-                                <select id="sim-dose" class="w-full bg-white border border-gray-300 text-gray-900 text-sm rounded-lg p-2 focus:ring-teal-500 cursor-pointer">
-                                    <option value="400">400 mg (Full Tablet)</option>
-                                    <option value="200">200 mg (Half Tablet)</option>
-                                </select>
-                            </div>
+                <!-- Controls & Tiny Console -->
+                <div class="mt-6 space-y-4">
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-[10px] md:text-xs font-bold text-gray-700 mb-1">Select Drug:</label>
+                            <select id="sim-drug" class="w-full bg-white border border-gray-300 text-gray-900 text-xs md:text-sm rounded-lg p-2 focus:ring-teal-500 cursor-pointer">
+                                <option value="albendazole">Albendazole</option>
+                                <option value="steroid">Corticosteroids</option>
+                                <option value="iron">Iron Supplement</option>
+                            </select>
                         </div>
-                        <div class="flex space-x-2">
-                            <button onclick="runSimulation()" class="flex-1 text-white bg-teal-600 hover:bg-teal-700 font-bold rounded-lg text-sm px-4 py-2 shadow transition">
-                                Administer
-                            </button>
-                            <button onclick="resetSimulation()" class="text-gray-700 bg-gray-200 hover:bg-gray-300 font-bold rounded-lg text-sm px-4 py-2 transition">
-                                Reset
-                            </button>
+                        <div>
+                            <label class="block text-[10px] md:text-xs font-bold text-gray-700 mb-1">Select Dose:</label>
+                            <select id="sim-dose" class="w-full bg-white border border-gray-300 text-gray-900 text-xs md:text-sm rounded-lg p-2 focus:ring-teal-500 cursor-pointer">
+                                <option value="400">400 mg</option>
+                                <option value="200">200 mg</option>
+                            </select>
                         </div>
                     </div>
-                    
-                    <div class="md:col-span-4">
-                        <div class="bg-gray-900 h-24 rounded-lg p-2 font-mono text-[10px] shadow-inner relative overflow-y-auto border border-gray-700 custom-scrollbar">
-                            <div id="sim-console" class="text-green-400 space-y-1">
-                                <p>> Pt admitted. Age: 5.</p>
-                                <p>> STH load detected.</p>
-                                <p>> Awaiting intervention...</p>
-                            </div>
+                    <div class="flex space-x-2">
+                        <button onclick="runSimulation()" class="flex-1 text-white bg-teal-600 hover:bg-teal-700 font-bold rounded-lg text-xs md:text-sm px-4 py-2 shadow transition">
+                            Administer
+                        </button>
+                        <button onclick="resetSimulation()" class="text-gray-700 bg-gray-200 hover:bg-gray-300 font-bold rounded-lg text-xs md:text-sm px-4 py-2 transition">
+                            Reset
+                        </button>
+                    </div>
+
+                    <!-- Tiny Console -->
+                    <div class="bg-gray-900 h-20 md:h-24 rounded-lg p-2 font-mono text-[10px] md:text-xs shadow-inner overflow-y-auto border border-gray-700 custom-scrollbar">
+                        <div id="sim-console" class="text-green-400 space-y-1">
+                            <p>> Pt admitted. Age: 5.</p>
+                            <p>> STH load detected.</p>
+                            <p>> Awaiting intervention...</p>
                         </div>
                     </div>
                 </div>
@@ -299,16 +281,16 @@
         </section>
 
         <!-- Case Study Section -->
-        <section id="case" class="scroll-mt-24 pb-4">
+        <section id="case" class="scroll-mt-24">
             <div class="glass-card rounded-2xl p-6 md:p-8 shadow-sm border-t-4 border-t-teal-500">
-                <h2 class="text-2xl font-bold text-gray-900 mb-4">Clinical Case Summary</h2>
-                <div class="space-y-4 text-gray-700 text-sm md:text-base">
+                <h2 class="text-xl md:text-2xl font-bold text-gray-900 mb-4">Clinical Case Summary</h2>
+                <div class="space-y-3 text-gray-700 text-sm md:text-base">
                     <p><strong>Chief Complaint:</strong> A 5-year-old male from a rural community is brought to the PHC. Mother reports child passing "white thread-like structures" in stool. Shows lethargy, poor appetite, and pica.</p>
                     <p><strong>Examination:</strong> Conjunctival pallor noted. Abdomen is slightly distended but non-tender.</p>
                     <p><strong>Diagnosis:</strong> Soil-Transmitted Helminthiasis (Likely <i>Ascaris lumbricoides</i>).</p>
-                    <div class="bg-teal-50 p-4 rounded-lg border border-teal-100 mt-4">
+                    <div class="bg-teal-50 p-3 md:p-4 rounded-lg border border-teal-100 mt-2 md:mt-4">
                         <h3 class="font-bold text-teal-900 mb-2">Management Protocol:</h3>
-                        <ul class="list-disc pl-5 space-y-1 text-teal-800 text-sm">
+                        <ul class="list-disc pl-5 space-y-1 text-teal-800 text-xs md:text-sm">
                             <li>Albendazole 400 mg (chewable tablet) stat.</li>
                             <li>Iron folic acid (IFA) supplementation for anemia correction.</li>
                             <li>WASH Counseling to prevent reinfection.</li>
@@ -318,11 +300,11 @@
             </div>
         </section>
 
-        <!-- Project Credits Dropdown -->
-        <section id="credits" class="scroll-mt-24 pb-12">
+        <!-- Project Credits Dropdown (Bottom) -->
+        <section id="credits" class="scroll-mt-24 pb-4">
             <div class="glass-card rounded-2xl p-4 md:p-6 shadow-sm max-w-2xl mx-auto border-t-4 border-teal-600 transition-all">
                 <details class="group">
-                    <summary class="flex justify-between items-center font-bold text-lg md:text-xl text-teal-900 cursor-pointer list-none hover:text-teal-700 transition-colors outline-none">
+                    <summary class="flex justify-between items-center font-bold text-lg md:text-xl text-teal-900 cursor-pointer list-none hover:text-teal-700 outline-none">
                         <span class="flex items-center gap-2">
                             <svg class="w-5 h-5 md:w-6 md:h-6 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
                             Project By
@@ -332,52 +314,84 @@
                         </span>
                     </summary>
                     <div class="mt-4 pt-4 border-t border-gray-200">
-                        <ul class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-gray-700 font-semibold text-sm md:text-base">
-                            <li class="flex items-center space-x-2 md:space-x-3"><span class="text-teal-400">●</span><span>Kuppili Leena Pattnaik</span></li>
-                            <li class="flex items-center space-x-2 md:space-x-3"><span class="text-teal-400">●</span><span>Lankada Varun Kumar</span></li>
-                            <li class="flex items-center space-x-2 md:space-x-3"><span class="text-teal-400">●</span><span>Maddila Sivakrishna</span></li>
-                            <li class="flex items-center space-x-2 md:space-x-3"><span class="text-teal-400">●</span><span>Maddimsetty Subhash</span></li>
-                            <li class="flex items-center space-x-2 md:space-x-3"><span class="text-teal-400">●</span><span>Madeti Gitanjali</span></li>
-                            <li class="flex items-center space-x-2 md:space-x-3"><span class="text-teal-400">●</span><span>Mandala Rohith</span></li>
-                            <li class="flex items-center space-x-2 md:space-x-3"><span class="text-teal-400">●</span><span>Manthri Sukesh Karthekeya</span></li>
-                            <li class="flex items-center space-x-2 md:space-x-3"><span class="text-teal-400">●</span><span>Meesala Sharmila Rani</span></li>
-                            <li class="flex items-center space-x-2 md:space-x-3"><span class="text-teal-400">●</span><span>Mohammad Nabeel Khan</span></li>
-                            <li class="flex items-center space-x-2 md:space-x-3"><span class="text-teal-400">●</span><span>Moulvi Gufran</span></li>
+                        <ul class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-gray-700 font-semibold text-xs md:text-sm">
+                            <li class="flex items-center space-x-2"><span class="text-teal-400">●</span><span>Kuppili Leena Pattnaik</span></li>
+                            <li class="flex items-center space-x-2"><span class="text-teal-400">●</span><span>Lankada Varun Kumar</span></li>
+                            <li class="flex items-center space-x-2"><span class="text-teal-400">●</span><span>Maddila Sivakrishna</span></li>
+                            <li class="flex items-center space-x-2"><span class="text-teal-400">●</span><span>Maddimsetty Subhash</span></li>
+                            <li class="flex items-center space-x-2"><span class="text-teal-400">●</span><span>Madeti Gitanjali</span></li>
+                            <li class="flex items-center space-x-2"><span class="text-teal-400">●</span><span>Mandala Rohith</span></li>
+                            <li class="flex items-center space-x-2"><span class="text-teal-400">●</span><span>Manthri Sukesh Karthekeya</span></li>
+                            <li class="flex items-center space-x-2"><span class="text-teal-400">●</span><span>Meesala Sharmila Rani</span></li>
+                            <li class="flex items-center space-x-2"><span class="text-teal-400">●</span><span>Mohammad Nabeel Khan</span></li>
+                            <li class="flex items-center space-x-2"><span class="text-teal-400">●</span><span>Moulvi Gufran</span></li>
                         </ul>
                     </div>
                 </details>
             </div>
         </section>
-
+        
+        <!-- Bottom spacing -->
+        <div class="h-10"></div>
     </div>
 
     <!-- Scripts -->
     <script>
+        // DOM Elements
         const wormSVG = `<svg class="worm active" viewBox="0 0 100 50"><path d="M10,25 Q20,5 30,25 T50,25 T70,25 T90,25" /></svg>`;
         const wormContainer = document.getElementById('worm-container');
         const consoleOut = document.getElementById('sim-console');
-        const patientSvg = document.querySelector('.patient-svg');
         const statusBadge = document.getElementById('patient-status-badge');
+        const patientAnim = document.getElementById('front-patient');
         
-        // Face Groups
-        const faceSick = document.getElementById('face-sick');
-        const faceHealthy = document.getElementById('face-healthy');
-        const faceCritical = document.getElementById('face-critical');
-        const patientRash = document.getElementById('patient-rash');
+        // Face Elements
+        const faceBase = document.querySelectorAll('#face-base, circle[r="10"]'); // Head and ears
+        const rashGroup = document.getElementById('rash-group');
+        const eyeSick = document.getElementById('eyes-sick');
+        const eyeHealthy = document.getElementById('eyes-healthy');
+        const eyeCritical = document.getElementById('eyes-critical');
+        const mouthSick = document.getElementById('mouth-sick');
+        const mouthHealthy = document.getElementById('mouth-healthy');
+        const mouthCritical = document.getElementById('mouth-critical');
+        const sweat = document.getElementById('sweat');
 
-        function setFace(type) {
-            faceSick.classList.add('hidden');
-            faceHealthy.classList.add('hidden');
-            faceCritical.classList.add('hidden');
+        function setPatientFace(state) {
+            // Hide all first
+            eyeSick.classList.add('hidden');
+            eyeHealthy.classList.add('hidden');
+            eyeCritical.classList.add('hidden');
+            mouthSick.classList.add('hidden');
+            mouthHealthy.classList.add('hidden');
+            mouthCritical.classList.add('hidden');
+            rashGroup.classList.add('opacity-0');
+            sweat.classList.add('hidden');
             
-            if(type === 'sick') faceSick.classList.remove('hidden');
-            if(type === 'healthy') faceHealthy.classList.remove('hidden');
-            if(type === 'critical') faceCritical.classList.remove('hidden');
+            // Reset base color
+            faceBase.forEach(el => el.setAttribute('fill', '#fde047'));
+            
+            // Stop pain crunching by default
+            patientAnim.classList.remove('animate-pain');
+
+            if (state === 'sick') {
+                eyeSick.classList.remove('hidden');
+                mouthSick.classList.remove('hidden');
+                sweat.classList.remove('hidden');
+                patientAnim.classList.add('animate-pain');
+            } else if (state === 'healthy') {
+                eyeHealthy.classList.remove('hidden');
+                mouthHealthy.classList.remove('hidden');
+            } else if (state === 'critical') {
+                eyeCritical.classList.remove('hidden');
+                mouthCritical.classList.remove('hidden');
+                rashGroup.classList.remove('opacity-0');
+                // Turn face red
+                faceBase.forEach(el => el.setAttribute('fill', '#fca5a5'));
+            }
         }
 
         function initWorms() {
             wormContainer.innerHTML = '';
-            for(let i=0; i<3; i++) { addWorm(); }
+            for(let i=0; i<3; i++) addWorm();
         }
 
         function addWorm() {
@@ -401,24 +415,20 @@
             const dose = document.getElementById('sim-dose').value;
             const worms = document.querySelectorAll('.worm');
 
-            consoleOut.innerHTML = ''; 
+            consoleOut.innerHTML = ''; // clear
 
             if (drug === 'albendazole') {
                 logConsole(`Admin: Albendazole ${dose}mg...`);
                 
                 if (dose === '200') {
-                    logConsole(`Bind β-tubulin...`);
                     logConsole(`ERR: Underdosed (Req: 400mg)`, "error");
-                    
                     worms.forEach(w => {
                         w.style.stroke = "#fcd34d"; 
                         w.style.animationDuration = "2s"; 
                     });
-                    
-                    statusBadge.className = "px-4 py-1.5 bg-yellow-100 text-yellow-800 text-xs md:text-sm font-bold rounded-full text-center";
+                    statusBadge.className = "mt-2 px-3 py-1 bg-yellow-100 text-yellow-800 text-[10px] md:text-sm font-bold rounded-full w-full truncate text-center";
                     statusBadge.innerText = "Vitals: Stable | Underdose";
-                    setFace('sick');
-
+                    setPatientFace('sick');
                 } else {
                     logConsole(`Bind β-tubulin...`);
                     setTimeout(() => {
@@ -427,14 +437,9 @@
                             w.classList.remove('active', 'hyper');
                             w.classList.add('dead');
                         });
-                        patientSvg.classList.remove('status-sick', 'status-critical');
-                        patientSvg.classList.add('status-healthy');
-                        
-                        statusBadge.className = "px-4 py-1.5 bg-green-100 text-green-800 text-xs md:text-sm font-bold rounded-full text-center";
+                        setPatientFace('healthy');
+                        statusBadge.className = "mt-2 px-3 py-1 bg-green-100 text-green-800 text-[10px] md:text-sm font-bold rounded-full w-full truncate text-center";
                         statusBadge.innerText = "Vitals: Good | Cleared";
-                        
-                        setFace('healthy');
-                        patientRash.classList.add('opacity-0');
                     }, 1500);
                 }
 
@@ -444,22 +449,18 @@
                 
                 setTimeout(() => {
                     logConsole(`CRIT: Hyperinfection!`, "error");
-                    logConsole(`Allergic reaction / Rash noted.`, "error");
+                    logConsole(`Allergic reaction / Rash.`, "error");
                     
-                    for(let i=0; i<8; i++) { setTimeout(addWorm, i * 200); }
+                    for(let i=0; i<6; i++) { setTimeout(addWorm, i * 200); }
                     
                     document.querySelectorAll('.worm').forEach(w => {
                         w.classList.remove('active');
                         w.classList.add('hyper');
                     });
-
-                    patientSvg.classList.remove('status-sick', 'status-healthy');
-                    patientSvg.classList.add('status-critical');
                     
-                    setFace('critical');
-                    patientRash.classList.remove('opacity-0'); 
+                    setPatientFace('critical');
 
-                    statusBadge.className = "px-4 py-1.5 bg-red-100 text-red-800 text-xs md:text-sm font-bold rounded-full text-center animate-pulse";
+                    statusBadge.className = "mt-2 px-3 py-1 bg-red-100 text-red-800 text-[10px] md:text-sm font-bold rounded-full w-full truncate text-center animate-pulse";
                     statusBadge.innerText = "Vitals: CRITICAL | Hyperinfection";
                 }, 1000);
 
@@ -468,15 +469,11 @@
                 
                 setTimeout(() => {
                     logConsole(`Pallor resolving.`, "success");
-                    logConsole(`Parasite load unaffected.`, "error");
+                    logConsole(`Parasites unaffected.`, "error");
                     
-                    patientSvg.classList.remove('status-sick', 'status-critical');
-                    patientSvg.classList.add('status-healthy');
+                    setPatientFace('sick'); // Still sick from worms
                     
-                    setFace('healthy');
-                    patientRash.classList.add('opacity-0');
-                    
-                    statusBadge.className = "px-4 py-1.5 bg-blue-100 text-blue-800 text-xs md:text-sm font-bold rounded-full text-center";
+                    statusBadge.className = "mt-2 px-3 py-1 bg-blue-100 text-blue-800 text-[10px] md:text-sm font-bold rounded-full w-full truncate text-center";
                     statusBadge.innerText = "Vitals: Better | Active Infection";
                 }, 1500);
             }
@@ -489,17 +486,17 @@
                 <p class="text-green-400">> STH load detected.</p>
                 <p class="text-green-400">> Awaiting intervention...</p>
             `;
-            patientSvg.className = "patient-svg status-sick w-full h-full";
-            statusBadge.className = "px-4 py-1.5 bg-yellow-100 text-yellow-800 text-xs md:text-sm font-bold rounded-full text-center";
-            statusBadge.innerText = "Vitals: Stable | Symptomatic";
+            setPatientFace('sick');
+            statusBadge.className = "mt-2 px-3 py-1 bg-yellow-100 text-yellow-800 text-[10px] md:text-sm font-bold rounded-full w-full truncate text-center";
+            statusBadge.innerText = "Vitals: Symptomatic";
             document.getElementById('sim-drug').value = 'albendazole';
             document.getElementById('sim-dose').value = '400';
-            
-            setFace('sick');
-            patientRash.classList.add('opacity-0');
         }
 
-        window.onload = initWorms;
+        window.onload = () => {
+            initWorms();
+            setPatientFace('sick');
+        };
     </script>
 </body>
 </html>
