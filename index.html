@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NDD Clinical Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f1f5f9;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+
+        /* Monitor Animations */
+        .scan-line {
+            width: 100%;
+            height: 5px;
+            background: rgba(74, 222, 128, 0.3);
+            position: absolute;
+            animation: scan 3s linear infinite;
+            z-index: 10;
+        }
+
+        @keyframes scan {
+            0% { top: -10%; }
+            100% { top: 110%; }
+        }
+
+        .worm {
+            position: absolute;
+            width: 40px;
+            height: 10px;
+            border-radius: 10px;
+            background-color: #f87171; /* red-400 */
+            border: 1px solid #b91c1c;
+            animation: wiggle 0.4s infinite alternate ease-in-out;
+            transition: all 1.5s ease;
+            box-shadow: 0 0 5px rgba(248, 113, 113, 0.5);
+        }
+
+        .worm.paralyzed {
+            animation: none;
+            background-color: #9ca3af; /* gray-400 */
+            border-color: #4b5563;
+            transform: scaleY(1.2) rotate(15deg) !important;
+            opacity: 0.4;
+            box-shadow: none;
+        }
+
+        @keyframes wiggle {
+            0% { transform: rotate(-10deg) scaleX(1.1); }
+            100% { transform: rotate(10deg) scaleX(0.9); }
+        }
+
+        /* Floating effect for organs */
+        .organ-bg {
+            opacity: 0.15;
+            background-image: radial-gradient(circle at center, #10b981 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+
+        /* Tab Transitions */
+        .tab-content {
+            display: none;
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out;
+        }
+        .tab-content.active {
+            display: block;
+            opacity: 1;
+            animation: fadeIn 0.4s ease-out forwards;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="text-slate-800 h-screen flex flex-col md:flex-row overflow-hidden">
+
+    <!-- Navigation -->
+    <nav class="bg-white shadow-lg w-full md:w-64 md:h-full flex-shrink-0 z-20 flex flex-col justify-between order-2 md:order-1">
+        <div>
+            <div class="hidden md:flex p-6 border-b border-slate-100 items-center gap-3">
+                <div class="bg-blue-100 p-2 rounded-lg text-blue-600">
+                    <i class="ph-fill ph-pill text-2xl"></i>
+                </div>
+                <div>
+                    <h1 class="font-bold text-lg leading-tight text-slate-800">NDD Module</h1>
+                    <p class="text-xs text-slate-500 font-medium">Community Health</p>
+                </div>
+            </div>
+            <div class="flex md:flex-col flex-row w-full p-2 md:p-4 gap-1 md:gap-2 overflow-x-auto">
+                <button onclick="switchTab('theory')" class="tab-btn flex-1 md:w-full flex items-center justify-center md:justify-start gap-2 p-3 rounded-xl transition-all text-sm font-semibold text-slate-500 hover:bg-slate-50 bg-blue-50 text-blue-700 active-tab">
+                    <i class="ph-bold ph-book-open text-lg"></i>
+                    <span class="hidden md:inline">Information</span>
+                </button>
+                <button onclick="switchTab('calculator')" class="tab-btn flex-1 md:w-full flex items-center justify-center md:justify-start gap-2 p-3 rounded-xl transition-all text-sm font-semibold text-slate-500 hover:bg-slate-50">
+                    <i class="ph-bold ph-calculator text-lg"></i>
+                    <span class="hidden md:inline">Dosage Calc</span>
+                </button>
+                <button onclick="switchTab('simulator')" class="tab-btn flex-1 md:w-full flex items-center justify-center md:justify-start gap-2 p-3 rounded-xl transition-all text-sm font-semibold text-slate-500 hover:bg-slate-50">
+                    <i class="ph-bold ph-monitor-heart text-lg"></i>
+                    <span class="hidden md:inline">Clinical Sim</span>
+                </button>
+                <button onclick="switchTab('case')" class="tab-btn flex-1 md:w-full flex items-center justify-center md:justify-start gap-2 p-3 rounded-xl transition-all text-sm font-semibold text-slate-500 hover:bg-slate-50">
+                    <i class="ph-bold ph-clipboard-text text-lg"></i>
+                    <span class="hidden md:inline">Case Study</span>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 h-full overflow-y-auto bg-slate-50 p-4 md:p-8 order-1 md:order-2">
+        <div class="max-w-4xl mx-auto pb-20 md:pb-0">
+
+            <!-- Theory Tab -->
+            <div id="theory" class="tab-content active">
+                <div class="mb-6">
+                    <h2 class="text-2xl font-bold text-slate-800">Deworming Protocols</h2>
+                    <p class="text-slate-500">National Deworming Day (NDD) Guidelines & Pharmacology</p>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+                        <div class="flex items-center gap-3 mb-4 text-purple-600">
+                            <i class="ph-fill ph-target text-2xl"></i>
+                            <h3 class="font-bold text-lg text-slate-800">Mechanism of Action</h3>
+                        </div>
+                        <p class="text-slate-600 leading-relaxed text-sm">
+                            Albendazole is a broad-spectrum anthelmintic. It exerts its effect by binding to the colchicine-sensitive site of tubulin, thereby inhibiting microtubule polymerization in the parasite. 
+                            <br><br>
+                            This selective mechanism impairs glucose uptake, depletes glycogen stores, and drastically decreases ATP production, resulting in flaccid paralysis and eventual death of the helminth.
+                        </p>
+                    </div>
+
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+                        <div class="flex items-center gap-3 mb-4 text-orange-500">
+                            <i class="ph-fill ph-clock-counter-clockwise text-2xl"></i>
+                            <h3 class="font-bold text-lg text-slate-800">History & Strategy</h3>
+                        </div>
+                        <p class="text-slate-600 leading-relaxed text-sm">
+                            Launched in 2015 by the MoHFW, Government of India, NDD is the world's largest public health program for deworming.
+                            <br><br>
+                            Conducted bi-annually on <b>February 10th</b> and <b>August 10th</b>, it targets children aged 1-19 years to reduce the burden of Soil-Transmitted Helminths (STH), improving cognitive development, nutrition, and school attendance.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Calculator Tab -->
+            <div id="calculator" class="tab-content">
+                <div class="mb-6">
+                    <h2 class="text-2xl font-bold text-slate-800">Dosage Calculator</h2>
+                    <p class="text-slate-500">Determine appropriate Albendazole administration based on patient profile.</p>
+                </div>
+
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 max-w-xl mx-auto">
+                    <div class="space-y-5">
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-2">Patient Profile</label>
+                            <select id="calc-profile" onchange="handleCalcChange()" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all">
+                                <option value="child1">Child (1 to 2 Years)</option>
+                                <option value="child2">Child / Adolescent (2 to 19 Years)</option>
+                                <option value="adult">Adult (Non-Pregnant)</option>
+                                <option value="pregnant">Pregnant Woman</option>
+                            </select>
+                        </div>
+                        
+                        <div id="trimester-container" class="hidden">
+                            <label class="block text-sm font-semibold text-slate-700 mb-2">Trimester</label>
+                            <select id="calc-trimester" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all">
+                                <option value="first">1st Trimester</option>
+                                <option value="second_third">2nd or 3rd Trimester</option>
+                            </select>
+                        </div>
+
+                        <button onclick="calculateDose()" class="w-full py-3.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-md transition-all active:scale-[0.98]">
+                            Determine Dosage
+                        </button>
+                    </div>
+
+                    <div id="calc-result-box" class="mt-6 hidden">
+                        <div id="calc-result-content" class="p-4 rounded-xl border flex items-start gap-4">
+                            <!-- Injected via JS -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Simulator Tab -->
+            <div id="simulator" class="tab-content">
+                <div class="mb-6 flex justify-between items-end">
+                    <div>
+                        <h2 class="text-2xl font-bold text-slate-800">Live Clinical Simulator</h2>
+                        <p class="text-slate-500">Gastric imaging & pharmacological intervention.</p>
+                    </div>
+                    <button onclick="resetSimulator()" class="text-sm font-semibold text-slate-500 hover:text-slate-800 flex items-center gap-1">
+                        <i class="ph-bold ph-arrows-clockwise"></i> Reset Patient
+                    </button>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    
+                    <!-- Left: Patient Status & Drug Select -->
+                    <div class="col-span-1 flex flex-col gap-4">
+                        <!-- Patient Card -->
+                        <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 relative overflow-hidden">
+                            <div class="absolute -right-4 -top-4 opacity-10 text-blue-600">
+                                <i class="ph-fill ph-user-circle text-8xl"></i>
+                            </div>
+                            <h3 class="font-bold text-slate-800 mb-3 relative z-10 border-b pb-2">Patient Status</h3>
+                            <div class="space-y-2 text-sm relative z-10">
+                                <p class="flex justify-between"><span class="text-slate-500">Name:</span> <span class="font-semibold">Raju (5 yrs)</span></p>
+                                <p class="flex justify-between"><span class="text-slate-500">Complaint:</span> <span class="font-semibold text-orange-600">Pica, Lethargy</span></p>
+                                <p class="flex justify-between"><span class="text-slate-500">Diagnosis:</span> <span class="font-semibold">Ascariasis (STH)</span></p>
+                                <p class="flex justify-between mt-2 pt-2 border-t"><span class="text-slate-500">Vitals:</span> <span id="vitals-status" class="font-bold text-red-500">Tachycardia, Pallor</span></p>
+                            </div>
+                        </div>
+
+                        <!-- Drug Administration -->
+                        <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 flex-1">
+                            <h3 class="font-bold text-slate-800 mb-3 border-b pb-2 flex items-center gap-2">
+                                <i class="ph-fill ph-syringe text-blue-500"></i> Intervention
+                            </h3>
+                            <div class="space-y-3 mt-4">
+                                <button onclick="administerDrug('albendazole')" id="btn-albendazole" class="w-full text-left p-3 rounded-lg border border-slate-200 hover:border-blue-500 hover:bg-blue-50 transition-all flex items-center justify-between group">
+                                    <div>
+                                        <div class="font-bold text-slate-800 group-hover:text-blue-700">Albendazole</div>
+                                        <div class="text-xs text-slate-500">400mg Anthelmintic</div>
+                                    </div>
+                                    <i class="ph-bold ph-caret-right text-slate-400 group-hover:text-blue-500"></i>
+                                </button>
+                                
+                                <button onclick="administerDrug('corticosteroid')" id="btn-corticosteroid" class="w-full text-left p-3 rounded-lg border border-slate-200 hover:border-red-500 hover:bg-red-50 transition-all flex items-center justify-between group">
+                                    <div>
+                                        <div class="font-bold text-slate-800 group-hover:text-red-700">Corticosteroid</div>
+                                        <div class="text-xs text-slate-500">Immunosuppressant</div>
+                                    </div>
+                                    <i class="ph-bold ph-caret-right text-slate-400 group-hover:text-red-500"></i>
+                                </button>
+
+                                <button onclick="administerDrug('iron')" id="btn-iron" class="w-full text-left p-3 rounded-lg border border-slate-200 hover:border-green-500 hover:bg-green-50 transition-all flex items-center justify-between group">
+                                    <div>
+                                        <div class="font-bold text-slate-800 group-hover:text-green-700">Iron Syrup (IFA)</div>
+                                        <div class="text-xs text-slate-500">Nutritional Supplement</div>
+                                    </div>
+                                    <i class="ph-bold ph-caret-right text-slate-400 group-hover:text-green-500"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right: Gastric Imaging Monitor -->
+                    <div class="col-span-1 lg:col-span-2 flex flex-col gap-4">
+                        
+                        <!-- The Screen -->
+                        <div class="bg-[#0f172a] rounded-2xl p-4 shadow-inner border-4 border-slate-800 relative h-64 md:h-80 flex flex-col">
+                            <!-- UI Header on monitor -->
+                            <div class="flex justify-between text-green-400 font-mono text-xs z-20 opacity-80 mb-2">
+                                <span>LIVE GASTRIC USG</span>
+                                <span class="animate-pulse">REC ●</span>
+                            </div>
+                            
+                            <!-- Screen Content Area -->
+                            <div id="monitor-screen" class="flex-1 relative overflow-hidden organ-bg rounded-lg border border-slate-700">
+                                <div class="scan-line"></div>
+                                <!-- Worms generated here via JS -->
+                            </div>
+                        </div>
+
+                        <!-- Clinical Console / Log -->
+                        <div class="bg-slate-900 rounded-xl p-4 font-mono text-sm shadow-inner h-32 overflow-y-auto">
+                            <div class="text-slate-400 mb-1 border-b border-slate-700 pb-1 text-xs">SYSTEM CONSOLE_</div>
+                            <div id="sim-log" class="text-green-400 space-y-1">
+                                <div>> Baseline established.</div>
+                                <div>> High parasitic load detected in jejunum.</div>
+                                <div class="text-yellow-400">> Awaiting clinical intervention...</div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+            <!-- Case Study Tab -->
+            <div id="case" class="tab-content">
+                <div class="mb-6">
+                    <h2 class="text-2xl font-bold text-slate-800">Clinical Case Application</h2>
+                    <p class="text-slate-500">Real-world scenario evaluation.</p>
+                </div>
+
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+                    <div class="bg-pink-50 border-b border-pink-100 p-6">
+                        <div class="flex items-center gap-3 text-pink-600 mb-2">
+                            <i class="ph-fill ph-stethoscope text-3xl"></i>
+                            <h3 class="font-bold text-xl text-slate-800">Pediatric Presentation</h3>
+                        </div>
+                        <p class="text-sm text-slate-600 font-medium">Patient: 5-year-old male | Setting: Rural PHC</p>
+                    </div>
+                    
+                    <div class="p-6 space-y-4 text-sm leading-relaxed text-slate-700">
+                        <div class="bg-slate-50 p-4 rounded-xl border border-slate-100">
+                            <h4 class="font-bold text-slate-800 mb-1 flex items-center gap-2"><i class="ph-bold ph-chat-circle text-blue-500"></i> Chief Complaint</h4>
+                            <p>Mother reports the child has been passing "white thread-like structures" in stool. The child exhibits marked lethargy, poor appetite, and pica (frequently eating dirt).</p>
+                        </div>
+
+                        <div class="bg-slate-50 p-4 rounded-xl border border-slate-100">
+                            <h4 class="font-bold text-slate-800 mb-1 flex items-center gap-2"><i class="ph-bold ph-magnifying-glass text-orange-500"></i> Examination & Diagnosis</h4>
+                            <p>Significant conjunctival pallor noted (signs of anemia). Abdomen is slightly distended but non-tender. <br><b>Diagnosis:</b> Soil-Transmitted Helminthiasis (Likely <i>Ascaris lumbricoides</i>).</p>
+                        </div>
+
+                        <div class="bg-slate-50 p-4 rounded-xl border border-slate-100">
+                            <h4 class="font-bold text-slate-800 mb-1 flex items-center gap-2"><i class="ph-bold ph-first-aid text-green-500"></i> Management Plan</h4>
+                            <ul class="list-disc pl-5 space-y-1 mt-2 text-slate-600">
+                                <li><b>Pharmacotherapy:</b> Albendazole 400 mg (chewable tablet) stat.</li>
+                                <li><b>Supplementation:</b> Iron Folic Acid (IFA) syrup for associated anemia.</li>
+                                <li><b>Counseling:</b> WASH (Water, Sanitation, and Hygiene) education for parents to prevent reinfection. Emphasize handwashing and wearing footwear.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <script>
+        // --- Navigation Logic ---
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(el => {
+                el.classList.remove('bg-blue-50', 'text-blue-700', 'active-tab');
+                el.classList.add('text-slate-500');
+            });
+
+            document.getElementById(tabId).classList.add('active');
+            
+            // Find the button that was clicked and update its style
+            const clickedBtn = Array.from(document.querySelectorAll('.tab-btn')).find(btn => btn.getAttribute('onclick').includes(tabId));
+            if(clickedBtn) {
+                clickedBtn.classList.remove('text-slate-500');
+                clickedBtn.classList.add('bg-blue-50', 'text-blue-700', 'active-tab');
+            }
+        }
+
+        // --- Calculator Logic ---
+        function handleCalcChange() {
+            const profile = document.getElementById('calc-profile').value;
+            const trimesterContainer = document.getElementById('trimester-container');
+            const resultBox = document.getElementById('calc-result-box');
+            
+            resultBox.classList.add('hidden'); // Hide previous results
+            
+            if (profile === 'pregnant') {
+                trimesterContainer.classList.remove('hidden');
+            } else {
+                trimesterContainer.classList.add('hidden');
+            }
+        }
+
+        function calculateDose() {
+            const profile = document.getElementById('calc-profile').value;
+            const trimester = document.getElementById('calc-trimester').value;
+            const resultBox = document.getElementById('calc-result-box');
+            const resultContent = document.getElementById('calc-result-content');
+            
+            resultBox.classList.remove('hidden');
+            resultContent.className = 'p-4 rounded-xl border flex items-start gap-4 transition-all duration-300'; // Reset classes
+
+            let icon, title, desc, colors;
+
+            if (profile === 'child1') {
+                icon = 'ph-pill';
+                title = '200 mg (Half Tablet)';
+                desc = 'Administer: Crush half tablet completely and mix with safe water. Observe the child swallowing.';
+                colors = 'bg-orange-50 border-orange-200 text-orange-800';
+            } else if (profile === 'child2' || profile === 'adult') {
+                icon = 'ph-check-circle';
+                title = '400 mg (Full Tablet)';
+                desc = 'Administer: Chew completely before swallowing. Do not swallow whole. Administer with water.';
+                colors = 'bg-green-50 border-green-200 text-green-800';
+            } else if (profile === 'pregnant') {
+                if (trimester === 'first') {
+                    icon = 'ph-warning-circle';
+                    title = 'CONTRAINDICATED';
+                    desc = 'Albendazole is absolutely contraindicated during the 1st trimester of pregnancy due to teratogenic risks.';
+                    colors = 'bg-red-50 border-red-200 text-red-800';
+                } else {
+                    icon = 'ph-check-circle';
+                    title = '400 mg (Full Tablet)';
+                    desc = 'Administer: Safe to administer single dose after completion of the 1st trimester.';
+                    colors = 'bg-green-50 border-green-200 text-green-800';
+                }
+            }
+
+            resultContent.classList.add(...colors.split(' '));
+            resultContent.innerHTML = `
+                <i class="ph-fill ${icon} text-3xl mt-1"></i>
+                <div>
+                    <h4 class="font-bold text-lg mb-1">${title}</h4>
+                    <p class="text-sm opacity-90">${desc}</p>
+                </div>
+            `;
+        }
+
+        // --- Simulator Logic ---
+        let wormElements = [];
+        let simulationActive = false;
+
+        function createWorm(x, y, rotation) {
+            const worm = document.createElement('div');
+            worm.className = 'worm';
+            worm.style.left = `${x}%`;
+            worm.style.top = `${y}%`;
+            worm.style.transform = `rotate(${rotation}deg)`;
+            return worm;
+        }
+
+        function initMonitor() {
+            const screen = document.getElementById('monitor-screen');
+            // Remove existing worms
+            screen.querySelectorAll('.worm').forEach(w => w.remove());
+            wormElements = [];
+            
+            // Add 4 initial worms
+            const positions = [
+                {x: 20, y: 30, r: 15}, {x: 60, y: 50, r: -45}, 
+                {x: 30, y: 70, r: 80}, {x: 70, y: 20, r: 10}
+            ];
+
+            positions.forEach(pos => {
+                const w = createWorm(pos.x, pos.y, pos.r);
+                screen.appendChild(w);
+                wormElements.push(w);
+            });
+        }
+
+        function logConsole(msg, type="info") {
+            const logBox = document.getElementById('sim-log');
+            const div = document.createElement('div');
+            
+            if(type === 'alert') div.className = 'text-red-400 font-bold';
+            else if(type === 'success') div.className = 'text-green-300';
+            else if(type === 'warning') div.className = 'text-yellow-400';
+            else div.className = 'text-green-400';
+            
+            div.innerText = `> ${msg}`;
+            logBox.appendChild(div);
+            logBox.scrollTop = logBox.scrollHeight;
+        }
+
+        function disableButtons() {
+            ['btn-albendazole', 'btn-corticosteroid', 'btn-iron'].forEach(id => {
+                const btn = document.getElementById(id);
+                btn.disabled = true;
+                btn.classList.add('opacity-50', 'cursor-not-allowed');
+            });
+            simulationActive = true;
+        }
+
+        function administerDrug(drugType) {
+            if (simulationActive) return;
+            disableButtons();
+            
+            const screen = document.getElementById('monitor-screen');
+            const vitals = document.getElementById('vitals-status');
+
+            if (drugType === 'albendazole') {
+                logConsole("Administering Albendazole 400mg...", "info");
+                logConsole("Binding to parasite β-tubulin...", "info");
+                
+                setTimeout(() => {
+                    logConsole("Microtubule polymerization inhibited.", "success");
+                    wormElements.forEach(w => w.classList.add('paralyzed'));
+                }, 1500);
+
+                setTimeout(() => {
+                    logConsole("ADR Profile: Mild abdominal discomfort noted.", "warning");
+                    logConsole("STATUS: Parasite paralysis and death complete.", "success");
+                    vitals.innerText = "Stabilizing. Tachycardia resolving.";
+                    vitals.className = "font-bold text-green-600";
+                }, 3500);
+            } 
+            else if (drugType === 'corticosteroid') {
+                logConsole("Administering Corticosteroids...", "warning");
+                logConsole("Warning: Immunosuppressive action initiated.", "alert");
+                
+                setTimeout(() => {
+                    logConsole("CRITICAL: Immune defense lowered.", "alert");
+                    // Multiply worms
+                    for(let i=0; i<8; i++) {
+                        const x = Math.random() * 80 + 10;
+                        const y = Math.random() * 80 + 10;
+                        const r = Math.random() * 360;
+                        const w = createWorm(x, y, r);
+                        screen.appendChild(w);
+                        wormElements.push(w);
+                    }
+                }, 1500);
+
+                setTimeout(() => {
+                    logConsole("ADR: HYPERINFECTION SYNDROME TRIGGERED.", "alert");
+                    logConsole("Parasitic load increasing exponentially.", "alert");
+                    vitals.innerText = "CRITICAL: Sepsis Risk High";
+                    vitals.className = "font-bold text-red-600 animate-pulse";
+                }, 3000);
+            }
+            else if (drugType === 'iron') {
+                logConsole("Administering Iron Folic Acid (IFA)...", "info");
+                
+                setTimeout(() => {
+                    logConsole("Hb levels improving. Pallor reducing.", "success");
+                    vitals.innerText = "Pallor resolved. Tachycardia persists.";
+                    vitals.className = "font-bold text-orange-500";
+                }, 1500);
+
+                setTimeout(() => {
+                    logConsole("Note: Primary cause (helminths) unaffected.", "warning");
+                    logConsole("ADR: Patient reports dark stools (expected).", "info");
+                }, 3000);
+            }
+        }
+
+        function resetSimulator() {
+            initMonitor();
+            simulationActive = false;
+            
+            // Reset Buttons
+            ['btn-albendazole', 'btn-corticosteroid', 'btn-iron'].forEach(id => {
+                const btn = document.getElementById(id);
+                btn.disabled = false;
+                btn.classList.remove('opacity-50', 'cursor-not-allowed');
+            });
+
+            // Reset Logs
+            const logBox = document.getElementById('sim-log');
+            logBox.innerHTML = `
+                <div>> System Reset. Baseline established.</div>
+                <div>> High parasitic load detected in jejunum.</div>
+                <div class="text-yellow-400">> Awaiting clinical intervention...</div>
+            `;
+
+            // Reset Vitals
+            const vitals = document.getElementById('vitals-status');
+            vitals.innerText = "Tachycardia, Pallor";
+            vitals.className = "font-bold text-red-500";
+        }
+
+        // Initialize on load
+        window.onload = () => {
+            initMonitor();
+        }
+    </script>
+</body>
+</html>
